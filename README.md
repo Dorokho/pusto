@@ -1,78 +1,41 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <ctype.h>
+-----BEGIN PGP PUBLIC KEY BLOCK-----
 
-const char *expr;
-
-// Прототипы функций
-int parse_expression();
-int parse_term();
-int parse_factor();
-
-// Функция пропуска пробелов
-void skip_whitespace() {
-    while (*expr == ' ') expr++;
-}
-
-// Функция для обработки чисел и скобок
-int parse_factor() {
-    skip_whitespace();
-    int result = 0;
-    if (*expr == '(') {
-        expr++;
-        result = parse_expression();
-        if (*expr == ')') expr++;
-    } else {
-        while (isdigit(*expr)) {
-            result = result * 10 + (*expr - '0');
-            expr++;
-        }
-    }
-    skip_whitespace();
-    return result;
-}
-
-// Функция для обработки умножения и деления
-int parse_term() {
-    int result = parse_factor();
-    while (*expr == '*' || *expr == '/') {
-        char op = *expr;
-        expr++;
-        int next_factor = parse_factor();
-        if (op == '*')
-            result *= next_factor;
-        else if (op == '/') {
-            if (next_factor == 0) {
-                printf("Ошибка: деление на ноль!\n");
-                exit(EXIT_FAILURE);
-            }
-            result /= next_factor;
-        }
-    }
-    return result;
-}
-
-// Функция для обработки сложения и вычитания
-int parse_expression() {
-    int result = parse_term();
-    while (*expr == '+' || *expr == '-') {
-        char op = *expr;
-        expr++;
-        int next_term = parse_term();
-        if (op == '+')
-            result += next_term;
-        else if (op == '-')
-            result -= next_term;
-    }
-    return result;
-}
-
-int main() {
-    char input[100];
-    printf("Введите выражение: ");
-    fgets(input, sizeof(input), stdin);
-    expr = input;
-    int result = parse_expression();
-    printf("Результат: %d\n", result);
-    return 0;
-}
+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
+=ioqq
+-----END PGP PUBLIC KEY BLOCK-----
