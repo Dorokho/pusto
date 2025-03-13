@@ -1,49 +1,36 @@
-import unittest
-import threading
 import json
-import time
-from http.server import HTTPServer
-from urllib.request import Request, urlopen
-from urllib.error import HTTPError
-from server import CalcHandler
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from urllib.parse import urlparse, parse_qs
+ 
+class CalcHandler(BaseHTTPRequestHandler):
+    def do_POST(self):
+        try:
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
 
-class TestCalcServerIntegration(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.server_address = ('', 8000)
-        cls.httpd = HTTPServer(cls.server_address, CalcHandler)
-        cls.server_thread = threading.Thread(target=cls.httpd.serve_forever)
-        cls.server_thread.setDaemon(True)
-        cls.server_thread.start()
-        time.sleep(1)  # Даем серверу немного времени на запуск
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.httpd.shutdown()
-        cls.server_thread.join()
-
-    def send_post_request(self, data):
-        url = 'http://localhost:8000'
-        request = Request(url, data=json.dumps(data).encode('utf-8'), method='POST')
-        request.add_header('Content-Type', 'application/json')
-        return urlopen(request)
-
-    def test_successful_post_request(self):
-        response = self.send_post_request({"message": "Hello"})
-        self.assertEqual(response.getcode(), 200)
-        response_data = json.loads(response.read().decode('utf-8'))
-        self.assertEqual(response_data, "request recieved")
-
-    def test_post_request_with_invalid_json(self):
-        url = 'http://localhost:8000'
-        request = Request(url, data=b'invalid_json', method='POST')
-        request.add_header('Content-Type', 'application/json')
-
-        with self.assertRaises(HTTPError) as context:
-            urlopen(request)
-        self.assertEqual(context.exception.code, 500)
-        error_response = json.loads(context.exception.read().decode('utf-8'))
-        self.assertIn("error", error_response)
-
-if __name__ == '__main__':
-    unittest.main()
+            try:
+                data = json.loads(post_data)
+            except Exception as e:
+                self.send_response(400)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": "Invalid JSON"}).encode("utf-8"))
+                return
+            
+            output = "request recieved"
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps(output).encode("utf-8"))
+        
+        except Exception as e:
+            self.send_response(500)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode("utf-8"))
+    
+if __name__ == "__main__":
+    server_address = ('', 8000)
+    httpd = HTTPServer(server_address, CalcHandler)
+    print("Starting server on port 8000...")
+    httpd.serve_forever()
